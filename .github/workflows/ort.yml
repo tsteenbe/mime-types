@@ -1,0 +1,59 @@
+name: ORT mime-types
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  ort_scan:
+    runs-on: ubuntu-latest
+    name: Run ORT
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: 'jshttp/mime-types'
+          ref: '2.1.35'
+      - name: Add SSH key
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.SSH_KEY }}" > $HOME/.ssh/id_github
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > $HOME/.ssh/id_github.pub
+          chmod 600 $HOME/.ssh/id_github*
+          cat >>~/.ssh/config <<END
+          Host github.com
+            HostName ssh.github.com
+            User git
+            Port 443
+            IdentityFile ~/.ssh/id_github
+            StrictHostKeyChecking no
+          END
+      - name: Prefer HTTPS over SSH for Git
+        run: |
+          git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+      - name: Generate .ort.yml file
+        run: |
+          cat >>${{ github.workspace }}/.ort.yml <<END
+          excludes:
+            scopes:
+            - pattern: 'devDependencies'
+              reason: 'DEV_DEPENDENCY_OF'
+              comment: 'Packages for development only.'
+          END
+      - name: Run GitHub action for ORT
+        uses: oss-review-toolkit/ort-ci-github-action@main
+        with:
+          sw-name: 'Mime Types'
+          sw-version: '2.1.35'
+          db-url: ${{ secrets.POSTGRES_URL }}
+          db-username: ${{ secrets.POSTGRES_USERNAME }}
+          db-password: ${{ secrets.POSTGRES_PASSWORD }}
+          allow-dynamic-versions: 'true'
+          ort-cli-analyze-args: >
+            -l project=oss-project
+            -l dist=external
+            -l org=engineering-sdk-xyz-team-germany-berlin
+          ort-yml-path: ${{ github.workspace }}/.ort.yml
+          run: >
+            cache-dependencies,
+            metadata-labels,
+            analyzer

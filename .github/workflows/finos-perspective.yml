@@ -1,0 +1,40 @@
+name: ORT finos/perspective
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  ort:
+    runs-on: ubuntu-latest
+    name: Run ORT
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: 'finos/perspective'
+      - name: Add SSH key
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.SSH_KEY }}" > $HOME/.ssh/id_github
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > $HOME/.ssh/id_github.pub
+          chmod 600 $HOME/.ssh/id_github*
+          cat >>~/.ssh/config <<END
+          Host github.com
+            HostName ssh.github.com
+            User git
+            Port 443
+            IdentityFile ~/.ssh/id_github
+            StrictHostKeyChecking no
+          END
+      - name: Prefer HTTPS over SSH for Git
+        run: |
+          git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+      - name: Run GitHub action for ORT
+        uses: oss-review-toolkit/ort-ci-github-action@main
+        with:
+          db-url: ${{ secrets.POSTGRES_URL }}
+          db-username: ${{ secrets.POSTGRES_USERNAME }}
+          db-password: ${{ secrets.POSTGRES_PASSWORD }}
+          allow-dynamic-versions: 'true'
+          ort-cli-analyze-args: '--not-package-managers Cargo,Yarn,Yarn2'
