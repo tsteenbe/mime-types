@@ -1,4 +1,4 @@
-name: mime-types
+name: DnA
 
 on: 
   workflow_dispatch:
@@ -13,14 +13,15 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v3
         with:
-          repository: 'tsteenbe/mime-types'
+          repository: 'mercedes-benz/DnA'
+          ref: 'aba6a9ccd1fc33b6caff1a89972e379336f1a02c'
       - name: Run GitHub action for ORT
         uses: tsteenbe/ort-ci-github-action@rc
         with:
-          sw-name: 'Mime Types'
-          sw-version: '2.1.26'
+          sw-name: 'DnA'
+          sw-version: 'aba6a9c'
           db-url: ${{ secrets.POSTGRES_URL }}
           db-username: ${{ secrets.POSTGRES_USERNAME }}
           db-password: ${{ secrets.POSTGRES_PASSWORD }}
           allow-dynamic-versions: 'true'
-          # ort-cli-analyze-args: '-l project=oss-project'
+          ort-cli-analyze-args: '-l project=oss-project'
