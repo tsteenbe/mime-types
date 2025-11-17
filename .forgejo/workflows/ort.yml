@@ -13,4 +13,4 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v5
       - name: Run Forgejo Action for ORT
-        uses: tsteenbe/ort-ci-forgejo-action@main
+        uses: tsteenbe/ort-ci-forgejo-action@16e5070cc53c220c44591f5493ed008ae668e527
